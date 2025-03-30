@@ -1,54 +1,72 @@
-import React, { useEffect, useState } from "react";
-import GlobalStyle from "./styles/global";
-import Header from "./components/Header/index";
-import Resume from "./components/Resume";
-import Form from "./components/Form";
+// import React from "react";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import Principal from "./Pages/principal";
+// import LoginForm from "./Pages/login"; // Importando a tela de login
 
-const App = () => {
-  const data = localStorage.getItem("transactions");
-  const [transactionsList, setTransactionsList] = useState(
-    data ? JSON.parse(data) : []
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         {/* Rota para o Login (inicial) */}
+//         <Route path="/" element={<LoginForm />} />
+
+//         {/* Rota para a Página Principal */}
+//         <Route path="/principal" element={<Principal />} />
+//       </Routes>
+//     </Router>
+//   );
+// }
+
+// export default App;
+
+// import React from "react";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import Principal from "./Pages/principal";
+// import LoginForm from "./Pages/login";
+
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         {/* Rota inicial: Tela de Login */}
+//         <Route path="/" element={<LoginForm />} />
+
+//         {/* Página Principal */}
+//         <Route path="/principal" element={<Principal />} />
+//       </Routes>
+//     </Router>
+//   );
+// }
+
+// export default App;
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import Principal from "./Pages/principal";
+import LoginForm from "./Pages/login";
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Tela de Login será a primeira a ser exibida */}
+        <Route path="/" element={<LoginWrapper />} />
+        <Route path="/principal" element={<Principal />} />
+      </Routes>
+    </Router>
   );
-  const [income, setIncome] = useState(0);
-  const [expense, setExpense] = useState(0);
-  const [total, setTotal] = useState(0);
+}
 
-  useEffect(() => {
-    const amountExpense = transactionsList
-      .filter((item) => item.expense)
-      .map((transaction) => Number(transaction.amount));
+/* Componente que adiciona navegação ao Login */
+function LoginWrapper() {
+  const navigate = useNavigate();
 
-    const amountIncome = transactionsList
-      .filter((item) => !item.expense)
-      .map((transaction) => Number(transaction.amount));
-
-    const expense = amountExpense.reduce((acc, cur) => acc + cur, 0).toFixed(2);
-    const income = amountIncome.reduce((acc, cur) => acc + cur, 0).toFixed(2);
-
-    const total = Math.abs(income - expense).toFixed(2);
-
-    setIncome(`R$ ${income}`);
-    setExpense(`R$ ${expense}`);
-    setTotal(`${Number(income) < Number(expense) ? "-" : ""}R$ ${total}`);
-  }, [transactionsList]);
-
-  const handleAdd = (transaction) => {
-    const newArrayTransactions = [...transactionsList, transaction];
-
-
-    setTransactionsList(newArrayTransactions);
-
-    localStorage.setItem("transactions", JSON.stringify(newArrayTransactions));
+  const handleLogin = () => {
+    navigate("/principal"); // Redireciona para a página principal
   };
 
-  return (
-    <>
-      <Header />
-      <Resume income={income} expense={expense} total={total} />
-      <Form handleAdd={handleAdd} transactionsList={transactionsList} setTransactionsList={setTransactionsList}/>
-      <GlobalStyle />
-    </>
-  );
-};
+  return <LoginForm onLogin={handleLogin} />;
+}
 
 export default App;
+
