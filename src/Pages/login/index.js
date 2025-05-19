@@ -7,7 +7,6 @@ const Form = ({onLogin}) => {
       <form className="form">
         <div id="login-area">
           <p>LOGIN</p>
-          <p id="behind">Log in to your account</p>
         </div>
         <div id="email-area">
           <input placeholder="EMAIL" id="email" className="input" type="text" />
