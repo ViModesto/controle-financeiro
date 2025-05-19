@@ -46,10 +46,11 @@ export const StyledWrapper = styled.div`
 
   #login-area p {
     top: 0.35em;
-    font-size: 1.5em;
+    font-size: 2em;
     font-weight: bold;
-    position: absolute;
+    position: relative;
     z-index: 2;
+    padding: -15em;
   }
 
   #login-area #behind {
@@ -295,3 +296,8 @@ export const StyledWrapper = styled.div`
     margin: 0.5em;
   }
 `;
+
+
+
+
+
