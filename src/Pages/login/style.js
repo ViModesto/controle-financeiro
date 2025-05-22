@@ -1,303 +1,129 @@
-import styled from 'styled-components';
-
+import styled from "styled-components";
 
 export const StyledWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /* Adicione isso para centralizar o formulário */
   height: 100vh;
   width: 100vw;
-  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff; /* opcional, caso queira forçar o fundo branco */
 
-  .form {
+  .form_main {
+    width: 280px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: white;
-    width: 15.5em;
-    height: 22.5em;
-    border: 2px solid #24135a;
-    border-bottom-left-radius: 1.5em;
-    border-top-right-radius: 1.5em;
-    box-shadow:
-      -10px 0px 0px #24135a,
-      -10px 5px 5px rgb(0, 0, 0, 0.2);
-    overflow: hidden;
-    position: relative;
-    transition: all 0.25s ease;
-  }
-
-  #login-area,
-  #email-area,
-  #password-area,
-  #footer-area {
-    position: relative;
-    z-index: 2;
-  }
-
-  #login-area {
-    width: 100%;
-    height: 3.5em;
-    display: flex;
     justify-content: center;
-    align-items: center;
-    color: white;
+    background-color: rgb(255, 255, 255);
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.062);
   }
 
-  #login-area p {
-    top: 0.35em;
-    font-size: 2em;
-    font-weight: bold;
+  .heading {
+    font-size: 2.5em;
+    color: #2e2e2e;
+    font-weight: 700;
+    margin: 15px 0 30px 0;
+  }
+
+  .inputContainer {
+    width: 100%;
     position: relative;
-    z-index: 2;
-    padding: -15em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  #login-area #behind {
-    top: 60%;
+  .inputIcon {
+    position: absolute;
+    left: 10px;
+  }
+
+  .inputField {
+    width: 100%;
+    height: 40px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid rgb(173, 173, 173);
+    border-radius: 30px;
+    margin: 10px 0;
+    color: black;
+    font-size: 0.8em;
+    font-weight: 500;
+    box-sizing: border-box;
+    padding-left: 30px;
+  }
+
+  .inputField:focus {
+    outline: none;
+    border-bottom: 2px solid rgb(199, 114, 255);
+  }
+
+  .inputField::placeholder {
+    color: rgb(80, 80, 80);
     font-size: 1em;
-    font-weight: bold;
-    position: absolute;
-    z-index: 1;
+    font-weight: 500;
   }
 
-  #behind {
-    position: absolute;
-    left: 1em;
-    color: #6041bf;
-  }
-
-  #email-area {
+  button {
+    position: relative;
     width: 100%;
-    padding-left: 10%;
-    padding-right: 10%;
-    height: 5em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    margin-top: 1em;
-    transition: all 0.25s ease;
-  }
-
-  #email-area input {
-    width: 100%;
-    border: 2px solid #6041bf;
-    border-radius: 0.5em;
-    height: 2.5em;
-    padding-left: 1em;
-    font-size: 0.95em;
-    font-weight: 100;
-    transition: all 0.5s ease;
-    outline: none;
-    box-shadow: 0px 5px 5px -3px rgb(0, 0, 0, 0.2);
-  }
-
-  #password-area {
-    width: 100%;
-    padding-left: 10%;
-    padding-right: 10%;
-    height: 6em;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    flex-direction: column;
-    transition: all 0.25s ease;
-  }
-
-  #password-area input {
-    width: 100%;
-    border: 2px solid #6041bf;
-    font-size: 0.95em;
-    border-radius: 0.5em;
-    height: 2.5em;
-    padding-left: 1em;
-    transition: all 0.25s ease;
-    outline: none;
-    box-shadow: 0px 5px 5px -3px rgb(0, 0, 0, 0.2);
-  }
-
-  #password-area a {
-    padding-top: 0.5em;
+    border: 2px solid #8000ff;
+    background-color: #8000ff;
+    height: 40px;
+    color: white;
     font-size: 0.8em;
-    font-weight: bold;
-    transition: all 0.25s ease;
-    color: #6041bf;
+    font-weight: 500;
+    letter-spacing: 1px;
+    border-radius: 30px;
+    margin: 10px;
+    cursor: pointer;
+    overflow: hidden;
   }
 
-  #footer-area {
-    margin-top: 0%;
-    padding-top: 0%;
-    width: 100%;
-    padding-left: 10%;
-    padding-right: 10%;
-    height: 7em;
+  #button::after {
+    content: "";
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.253);
+    height: 100%;
+    width: 150px;
+    top: 0;
+    left: -200px;
+    border-bottom-right-radius: 100px;
+    border-top-left-radius: 100px;
+    filter: blur(10px);
+    transition-duration: 0.5s;
+  }
+
+  #button:hover::after {
+    transform: translateX(600px);
+    transition-duration: 0.5s;
+  }
+
+  .signupContainer {
+    margin: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-    color: #6041bf;
-    transition: all 0.25s ease;
-  }
-
-  #footer-area button {
-    width: 100%;
-    border: 2px solid #6041bf;
-    border-radius: 0.5em;
-    height: 2.5em;
-    padding-left: 1em;
-    font-size: 0.95em;
-    font-weight: 100;
-    transition: all 0.25s ease;
-    color: white;
-    font-weight: bold;
-    background-color: #6041bf;
-    box-shadow: 0px 5px 5px -3px rgb(0, 0, 0, 0.2);
-  }
-
-  #footer-area p,
-  #footer-area a {
-    font-size: 0.8em;
-    transition: all 0.25s ease;
-  }
-
-  #text-inside {
-    padding-top: 0.5em;
-    display: flex;
-  }
-
-  #link {
-    padding-left: 0.1em;
-    font-weight: bold;
-  }
-
-  #background-color {
-    width: 100%;
-    height: 3.5em;
-    background-color: #6041bf;
-    position: absolute;
-    top: 0em;
-    z-index: 1;
-    transition: all 0.5s ease;
-    box-shadow: inset 5px 0px #24135a;
-  }
-
-  #link-circle {
-    width: 100%;
-    height: 4.5em;
-    display: flex;
     align-items: center;
-    justify-content: space-around;
-    padding-left: 15%;
-    padding-right: 15%;
+    justify-content: center;
+    gap: 20px;
   }
 
-  #link-circle svg {
-    transition: all 0.25s ease;
+  .signupContainer p {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: black;
   }
 
-  #whitefilter {
-    width: 3.5em;
-    height: 3.5em;
-    top: 2.5px;
-    right: 2.5px;
-    position: absolute;
-    z-index: 2;
-    border-top-right-radius: 1.25em;
-    box-shadow: 35px -35px 0px -1px white;
-  }
-
-  ::placeholder {
-    color: #6041bf;
-    font-weight: bold;
-  }
-
-  .form:hover {
-    width: 16em;
-    height: 23em;
-  }
-
-  #email-area:hover ~ #background-color {
-    height: 4.2em;
-    transform: translateY(4em);
-  }
-
-  #email-area:hover,
-  #password-area:hover,
-  #footer-area:hover {
-    padding-left: 5%;
-    padding-right: 5%;
-  }
-
-  #email-area:hover p {
+  .signupContainer a {
+    font-size: 0.7em;
+    font-weight: 500;
+    background-color: #2e2e2e;
     color: white;
-  }
-
-  #email-area:hover input {
-    color: white;
-    border: 2px solid white;
-    background-color: #6041bf;
-    height: 3em;
-  }
-
-  #email-area:hover ::placeholder {
-    color: white;
-  }
-
-  #password-area:hover ~ #background-color {
-    height: 5.5em;
-    transform: translateY(7.8em);
-  }
-
-  #footer-area:hover ~ #background-color {
-    height: 5.9em;
-    transform: translateY(13.2em);
-  }
-
-  #password-area:hover p {
-    color: white;
-  }
-
-  #password-area:hover a {
-    color: white;
-    padding-right: 5%;
-  }
-
-  #password-area:hover input {
-    color: white;
-    border: 2px solid white;
-    background-color: #6041bf;
-    height: 3em;
-  }
-
-  #password-area:hover ::placeholder {
-    color: white;
-  }
-
-  #footer-area:hover p,
-  #footer-area:hover a {
-    color: white;
-  }
-
-  #footer-area:hover button {
-    border: 2px solid white;
-    background-color: #6041bf;
-    height: 3em;
-  }
-
-  #footer-area button:active {
-    color: #6041bf;
-    background-color: white;
-    width: 90%;
-  }
-
-  #link-circle svg:hover {
-    transform: scale(1.25);
-    margin: 0.5em;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 20px;
   }
 `;
-
-
-
-
-
