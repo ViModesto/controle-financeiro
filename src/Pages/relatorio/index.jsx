@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
+import Header from "../../componentsRelatório/Header";
+import ResumeItem from "../../componentsRelatório/ResumeItem";
 import GlobalStyle from "../../styles/global";
-import Header from "../../components/Header";
-import Resume from "../../components/Resume";
-import Form from "../../components/Form";
 
 const Relatorio = () => {
   const data = localStorage.getItem("transactions");
-  const [transactionsList, setTransactionsList] = useState(
+  const [transactionsList, /*setTransactionsList*/] = useState(
     data ? JSON.parse(data) : []
   );
   const [income, setIncome] = useState(0);
@@ -32,22 +31,10 @@ const Relatorio = () => {
     setTotal(`${Number(income) < Number(expense) ? "-" : ""}R$ ${total}`);
   }, [transactionsList]);
 
-  const handleAdd = (transaction) => {
-    const newArrayTransactions = [...transactionsList, transaction];
-
-    setTransactionsList(newArrayTransactions);
-    localStorage.setItem("transactions", JSON.stringify(newArrayTransactions));
-  };
-
   return (
     <>
       <Header />
-      <Resume income={income} expense={expense} total={total} />
-      <Form
-        handleAdd={handleAdd}
-        transactionsList={transactionsList}
-        setTransactionsList={setTransactionsList}
-      />
+      <ResumeItem income={income} expense={expense} total={total} />
       <GlobalStyle />
     </>
   );
