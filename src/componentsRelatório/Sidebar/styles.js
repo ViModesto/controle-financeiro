@@ -1,60 +1,74 @@
 // componentsRelatório/Sidebar/styles.js
+// Adicione este styled component aos seus estilos existentes
+
 import styled from "styled-components";
 
+// ... seus estilos existentes ...
+
+export const ErrorText = styled.span`
+  color: #ff4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+`;
+
+// Exemplo completo de como podem ficar seus estilos:
 export const Container = styled.div`
-  width: 320px;
-  background-color: #fff;
-  box-shadow: 0px 0px 5px #ccc;
+  width: 280px;
+  background-color: #f8f9fa;
   padding: 20px;
-  min-height: calc(100vh - 150px);
-  margin-top: -50px;
-  border-radius: 5px;
-  margin-left: 20px;
+  border-right: 1px solid #e0e0e0;
+  height: 100vh;
+  overflow-y: auto;
 `;
 
 export const FilterSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 `;
 
 export const InputContent = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 8px;
 `;
 
 export const Label = styled.label`
   font-size: 14px;
   font-weight: 500;
   color: #333;
-  margin-bottom: 5px;
 `;
 
 export const Select = styled.select`
-  outline: none;
-  border-radius: 5px;
   padding: 8px 12px;
-  font-size: 14px;
   border: 1px solid #ccc;
-  background-color: #fff;
-  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
 
   &:focus {
-    border-color: #6041bf;
-    box-shadow: 0 0 0 2px rgba(96, 65, 191, 0.1);
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
   }
 `;
 
 export const Input = styled.input`
-  outline: none;
-  border-radius: 5px;
   padding: 8px 12px;
-  font-size: 14px;
   border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
 
   &:focus {
-    border-color: #6041bf;
-    box-shadow: 0 0 0 2px rgba(96, 65, 191, 0.1);
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+  }
+
+  &::placeholder {
+    color: #999;
   }
 `;
 
@@ -62,35 +76,35 @@ export const CheckboxContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 10px;
 `;
 
 export const Checkbox = styled.input`
-  accent-color: #6041bf;
+  width: 16px;
+  height: 16px;
 `;
 
 export const CheckboxLabel = styled.label`
   font-size: 14px;
-  color: #666;
+  color: #333;
   cursor: pointer;
 `;
 
 export const Button = styled.button`
-  padding: 12px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  background-color: #7c3aed;
   color: white;
-  background-color: #6041bf;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
-  margin-top: 10px;
+  cursor: pointer;
+  margin-top: 8px;
 
   &:hover {
-    background-color: #5035a3;
+    background-color: #6d28d9;
   }
 
   &:active {
-    transform: translateY(1px);
+    background-color: #5b21b6;
   }
 `;

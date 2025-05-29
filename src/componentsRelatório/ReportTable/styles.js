@@ -37,7 +37,6 @@ export const PrintButton = styled.button`
   color: #666;
   cursor: pointer;
   font-size: 14px;
-
   &:hover {
     color: #333;
   }
@@ -51,7 +50,6 @@ export const EditorButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
-
   &:hover {
     background-color: #5035a3;
   }
@@ -70,7 +68,7 @@ export const ReportInfo = styled.div`
   margin-bottom: 30px;
   font-size: 14px;
   color: #666;
-  
+
   div {
     margin-bottom: 5px;
   }
@@ -99,7 +97,6 @@ export const Th = styled.th`
   font-weight: 500;
   color: #333;
   border-bottom: 2px solid #e5e5e5;
-
   &:first-child {
     text-align: left;
   }
