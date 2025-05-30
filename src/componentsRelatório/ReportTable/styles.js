@@ -32,13 +32,13 @@ export const ButtonGroup = styled.div`
 
 export const PrintButton = styled.button`
   padding: 8px 16px;
-  background: none;
+  background-color: #6041bf;
   border: none;
-  color: #666;
+  color: white;
   cursor: pointer;
   font-size: 14px;
   &:hover {
-    color: #333;
+     background-color: #5035a3;
   }
 `;
 

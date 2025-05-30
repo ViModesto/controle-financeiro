@@ -77,7 +77,6 @@ const ReportTable = ({ reportData, reportType }) => {
         <C.Title>Relatório financeiro</C.Title>
         <C.ButtonGroup>
           <C.PrintButton>Imprimir</C.PrintButton>
-          <C.EditorButton>Editor de relatórios</C.EditorButton>
         </C.ButtonGroup>
       </C.Header>
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { StyledWrapper } from "./style";
+import GlobalStyle from "../../styles/global";
 
 const Form = ({ onLogin }) => {
   const [username, setUsername] = useState("");
@@ -20,6 +21,7 @@ const Form = ({ onLogin }) => {
 
   return (
     <StyledWrapper>
+      <GlobalStyle />
       <form className="form_main" onSubmit={handleSubmit}>
         <p className="heading">Login</p>
 
