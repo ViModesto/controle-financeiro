@@ -1,84 +1,6 @@
 import React, { useState } from "react";
+import Header from "../../components/Header";
 import GlobalStyle from "../../styles/global";
-
-// Componente Header
-
-import { useNavigate } from "react-router-dom";
-
-// Componente Header com menu horizontal simples
-const Header = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div
-      style={{
-        textAlign: "center",
-        height: "60px",
-        backgroundColor: "#6f42c1",
-        color: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 20px",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      }}
-    >
-      <h1 style={{ margin: 0, fontSize: "20px" }}>Controle Financeiro</h1>
-
-      <div style={{ display: "flex", gap: "15px" }}>
-        <button
-          onClick={() => navigate("/principal")}
-          style={{
-            backgroundColor: "transparent",
-            border: "1px solid white",
-            color: "white",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
-          Principal
-        </button>
-
-        <button
-          onClick={() => navigate("/relatorio")}
-          style={{
-            backgroundColor: "transparent",
-            border: "1px solid white",
-            color: "white",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
-          Relatórios
-        </button>
-
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            backgroundColor: "#dc3545",
-            border: "1px solid #dc3545",
-            color: "white",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
-          Sair
-        </button>
-      </div>
-    </div>
-  );
-};
 
 // Componente Sidebar
 const Sidebar = ({
@@ -626,7 +548,7 @@ const ReportTable = ({ reportData, reportType }) => {
   );
 };
 
-const RelatorioFinanceiro = () => {
+const Relatorio = ({ user, onLogout }) => {
   const [reportType, setReportType] = useState("Manual");
   const [reportCategory, setReportCategory] = useState("Planilha de receitas");
   const [account, setAccount] = useState("Todas as contas");
@@ -853,8 +775,8 @@ const RelatorioFinanceiro = () => {
 
   return (
     <div style={{ height: "100vh", backgroundColor: "#f8f9fa" }}>
-      <Header />
-      <GlobalStyle />
+       <GlobalStyle />
+      <Header user={user} onLogout={onLogout} />
       <div
         style={{
           display: "flex",
@@ -954,4 +876,4 @@ const RelatorioFinanceiro = () => {
   );
 };
 
-export default RelatorioFinanceiro;
+export default Relatorio;
