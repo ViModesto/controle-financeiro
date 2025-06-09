@@ -15,7 +15,7 @@ const Principal = ({ user, onLogout }) => {
 
   // Carregar transações do Supabase quando o componente monta
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadTransactions();
     }
   }, [user]);
@@ -25,12 +25,19 @@ const Principal = ({ user, onLogout }) => {
     calculateTotals();
   }, [transactionsList]);
 
-  const getLocalStorageKey = () => `transactions_${user.id}`;
+  const getLocalStorageKey = () => `transactions_${user?.id || "default"}`;
 
   const loadTransactions = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Verificar se user existe e tem id
+      if (!user?.id) {
+        setError("Usuário não identificado");
+        setLoading(false);
+        return;
+      }
 
       // Primeiro, carregar dados locais como backup
       const localData = localStorage.getItem(getLocalStorageKey());
@@ -90,7 +97,7 @@ const Principal = ({ user, onLogout }) => {
         console.log("Sincronizando transações locais:", unsyncedTransactions);
 
         for (const transaction of unsyncedTransactions) {
-          const { id, ...transactionWithoutId } = transaction;
+          const { id, isLocal, ...transactionWithoutId } = transaction;
 
           const { data, error } = await supabase
             .from("transactions")
@@ -121,13 +128,20 @@ const Principal = ({ user, onLogout }) => {
   };
 
   const calculateTotals = () => {
+    if (!Array.isArray(transactionsList) || transactionsList.length === 0) {
+      setIncome("R$ 0.00");
+      setExpense("R$ 0.00");
+      setTotal("R$ 0.00");
+      return;
+    }
+
     const amountExpense = transactionsList
-      .filter((item) => item.expense)
-      .map((transaction) => Number(transaction.amount));
+      .filter((item) => item?.expense === true)
+      .map((transaction) => Number(transaction?.amount) || 0);
 
     const amountIncome = transactionsList
-      .filter((item) => !item.expense)
-      .map((transaction) => Number(transaction.amount));
+      .filter((item) => item?.expense === false)
+      .map((transaction) => Number(transaction?.amount) || 0);
 
     const expenseTotal = amountExpense
       .reduce((acc, cur) => acc + cur, 0)
@@ -148,12 +162,29 @@ const Principal = ({ user, onLogout }) => {
 
   const handleAdd = async (transaction) => {
     try {
+      // Validar dados de entrada
+      if (!transaction || !transaction.description || !transaction.amount) {
+        throw new Error("Dados da transação incompletos");
+      }
+
+      if (!user?.id) {
+        throw new Error("Usuário não identificado");
+      }
+
       // Criar transação com dados completos
       const newTransaction = {
-        ...transaction,
+        description: String(transaction.description).trim(),
+        amount: parseFloat(transaction.amount),
+        expense: Boolean(transaction.expense),
         user_id: user.id,
         created_at: new Date().toISOString(),
       };
+
+      // Validar se amount é um número válido
+      if (isNaN(newTransaction.amount) || newTransaction.amount <= 0) {
+        throw new Error("Valor deve ser um número positivo");
+      }
+
       console.log("Tentando inserir:", newTransaction);
 
       // Tentar salvar no Supabase primeiro
@@ -164,13 +195,8 @@ const Principal = ({ user, onLogout }) => {
         .single();
 
       if (error) {
-        if (error) {
-          console.error(
-            "Erro ao salvar transação no Supabase:",
-            error.message,
-            error.details
-          );
-        }
+        console.error("Erro ao salvar transação no Supabase:", error);
+
         // Fallback: salvar localmente com ID temporário
         const tempTransaction = {
           ...newTransaction,
@@ -192,14 +218,18 @@ const Principal = ({ user, onLogout }) => {
       }
     } catch (err) {
       console.error("Erro ao adicionar transação:", err);
+
       // Fallback completo
       const tempTransaction = {
-        ...transaction,
+        description: String(transaction?.description || "").trim(),
+        amount: parseFloat(transaction?.amount) || 0,
+        expense: Boolean(transaction?.expense),
         id: Date.now(),
-        user_id: user.id,
+        user_id: user?.id,
         created_at: new Date().toISOString(),
         isLocal: true,
       };
+
       const newArrayTransactions = [...transactionsList, tempTransaction];
       setTransactionsList(newArrayTransactions);
       saveToLocalStorage(newArrayTransactions);
@@ -211,19 +241,24 @@ const Principal = ({ user, onLogout }) => {
 
   const handleDelete = async (transactionId) => {
     try {
+      if (!transactionId) {
+        console.error("ID da transação não fornecido");
+        return;
+      }
+
       // Atualizar lista local imediatamente para melhor UX
       const newArrayTransactions = transactionsList.filter(
-        (transaction) => transaction.id !== transactionId
+        (transaction) => transaction?.id !== transactionId
       );
       setTransactionsList(newArrayTransactions);
       saveToLocalStorage(newArrayTransactions);
 
       // Tentar deletar do Supabase (só se não for uma transação local)
       const transactionToDelete = transactionsList.find(
-        (t) => t.id === transactionId
+        (t) => t?.id === transactionId
       );
 
-      if (transactionToDelete && !transactionToDelete.isLocal) {
+      if (transactionToDelete && !transactionToDelete.isLocal && user?.id) {
         const { error } = await supabase
           .from("transactions")
           .delete()
@@ -242,6 +277,26 @@ const Principal = ({ user, onLogout }) => {
       setError("Transação removida localmente.");
     }
   };
+
+  // Verificar se user existe antes de renderizar
+  if (!user) {
+    return (
+      <>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            fontSize: "18px",
+          }}
+        >
+          Erro: Usuário não identificado
+        </div>
+        <GlobalStyle />
+      </>
+    );
+  }
 
   if (loading) {
     return (

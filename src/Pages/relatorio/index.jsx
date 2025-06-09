@@ -1,6 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import GlobalStyle from "../../styles/global";
+import { supabase } from "../../supabaseClient";
+import { Input, Label } from "./styles";
+
+// Service para comunicação com a API
+const ApiService = {
+  async getTransactions(filters = {}) {
+    try {
+      let query = supabase.from("transactions").select("*");
+
+      // Aplicando filtros reais
+      if (filters.user_id) query = query.eq("user_id", filters.user_id);
+      if (filters.type) query = query.eq("type", filters.type);
+      if (filters.status) query = query.eq("status", filters.status);
+      if (filters.start_date) query = query.gte("data", filters.start_date);
+      if (filters.end_date) query = query.lte("data", filters.end_date);
+      if (filters.include_transfers === false)
+        query = query.eq("is_transfer", false);
+
+      const { data: transactions, error } = await query;
+
+      if (error) {
+        throw new Error(`Erro ao buscar transações: ${error.message}`);
+      }
+
+      return transactions;
+    } catch (error) {
+      console.error("Erro na API:", error);
+      throw error;
+    }
+  },
+};
 
 // Componente Sidebar
 const Sidebar = ({
@@ -21,6 +52,7 @@ const Sidebar = ({
   includeTransfers,
   setIncludeTransfers,
   onGenerateReport,
+  loading,
 }) => {
   const applyDateMask = (value) => {
     const numbers = value.replace(/\D/g, "");
@@ -41,48 +73,112 @@ const Sidebar = ({
     return regex.test(dateString);
   };
 
+  // const parseDate = (dateString) => {
+  //   if (!isValidDateFormat(dateString)) return null;
+  //   const [day, month, year] = dateString.split("/");
+  //   const date = new Date(year, month - 1, day);
+  //   if (
+  //     date.getDate() !== day ||
+  //     date.getMonth() !== month - 1 ||
+  //     date.getFullYear() !== year
+  //   ) {
+  //     return null;
+  //   }
+  //   return date;
+  // };
   const parseDate = (dateString) => {
-    if (!isValidDateFormat(dateString)) return null;
-    const [day, month, year] = dateString.split("/");
+    if (!dateString || typeof dateString !== "string") return null;
+
+    const clean = dateString.trim();
+
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!regex.test(clean)) {
+      return null;
+    }
+
+    const [dayStr, monthStr, yearStr] = clean.split("/");
+
+    const day = parseInt(dayStr, 10);
+    const month = parseInt(monthStr, 10);
+    const year = parseInt(yearStr, 10);
+
     const date = new Date(year, month - 1, day);
+
     if (
-      date.getDate() != day ||
-      date.getMonth() != month - 1 ||
-      date.getFullYear() != year
+      date.getDate() !== day ||
+      date.getMonth() !== month - 1 ||
+      date.getFullYear() !== year
     ) {
       return null;
     }
+
     return date;
   };
 
-  const validateDateRange = () => {
-    if (!startDate || !endDate) return true;
-    const startDateObj = parseDate(startDate);
-    const endDateObj = parseDate(endDate);
-    if (!startDateObj || !endDateObj) return true;
-    return startDateObj <= endDateObj;
-  };
+  // const validateDateRange = () => {
+  //   if (!startDate || !endDate) return true;
+  //   const startDateObj = parseDate(startDate);
+  //   const endDateObj = parseDate(endDate);
+  //   if (!startDateObj || !endDateObj) return true;
+  //   return startDateObj <= endDateObj;
+  // };
 
-  const handleStartDateChange = (e) => {
-    const maskedValue = applyDateMask(e.target.value);
-    setStartDate(maskedValue);
-  };
+  // const validateDateRange = () => {
+  //   if (!(startDate instanceof Date) || isNaN(startDate)) return true;
+  //   if (!(endDate instanceof Date) || isNaN(endDate)) return true;
+  //   return endDate >= startDate;
+  // };
 
-  const handleEndDateChange = (e) => {
-    const maskedValue = applyDateMask(e.target.value);
-    setEndDate(maskedValue);
-  };
+  // const handleStartDateChange = (e) => {
+  //   const maskedValue = applyDateMask(e.target.value);
+  //   setStartDate(maskedValue);
+  // };
 
+  // const handleEndDateChange = (e) => {
+  //   const maskedValue = applyDateMask(e.target.value);
+  //   setEndDate(maskedValue);
+  // };
+
+  // const handleGenerateReport = () => {
+  //   if (startDate && !isValidDateFormat(startDate)) {
+  //     alert("Formato de data inicial inválido. Use dd/mm/aaaa");
+  //     return;
+  //   }
+  //   if (endDate && !isValidDateFormat(endDate)) {
+  //     alert("Formato de data final inválido. Use dd/mm/aaaa");
+  //     return;
+  //   }
+  //   if (!validateDateRange()) {
+  //     alert("A data inicial deve ser menor ou igual à data final");
+  //     return;
+  //   }
+
+  //   const filterParams = {
+  //     reportType,
+  //     reportCategory,
+  //     account,
+  //     analysisBy,
+  //     situation,
+  //     startDate: startDate ? parseDate(startDate) : null,
+  //     endDate: endDate ? parseDate(endDate) : null,
+  //     includeTransfers,
+  //   };
+
+  //   onGenerateReport(filterParams);
+  // };
   const handleGenerateReport = () => {
-    if (startDate && !isValidDateFormat(startDate)) {
+    const parsedStartDate = startDate ? parseDate(startDate) : null;
+    const parsedEndDate = endDate ? parseDate(endDate) : null;
+
+    if (startDate && !parsedStartDate) {
       alert("Formato de data inicial inválido. Use dd/mm/aaaa");
       return;
     }
-    if (endDate && !isValidDateFormat(endDate)) {
+    if (endDate && !parsedEndDate) {
       alert("Formato de data final inválido. Use dd/mm/aaaa");
       return;
     }
-    if (!validateDateRange()) {
+    if (parsedStartDate && parsedEndDate && parsedStartDate > parsedEndDate) {
       alert("A data inicial deve ser menor ou igual à data final");
       return;
     }
@@ -93,22 +189,22 @@ const Sidebar = ({
       account,
       analysisBy,
       situation,
-      startDate: startDate ? parseDate(startDate) : null,
-      endDate: endDate ? parseDate(endDate) : null,
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
       includeTransfers,
     };
 
     onGenerateReport(filterParams);
   };
 
-  const getInputStyle = (dateValue) => {
-    if (!dateValue) return {};
-    const isValid = isValidDateFormat(dateValue) && parseDate(dateValue);
-    return {
-      borderColor: isValid ? "#ccc" : "#ff4444",
-      backgroundColor: isValid ? "white" : "#fff5f5",
-    };
-  };
+  // const getInputStyle = (dateValue) => {
+  //   if (!dateValue) return {};
+  //   const isValid = isValidDateFormat(dateValue) && parseDate(dateValue);
+  //   return {
+  //     borderColor: isValid ? "#ccc" : "#ff4444",
+  //     backgroundColor: isValid ? "white" : "#fff5f5",
+  //   };
+  // };
 
   const inputStyle = {
     width: "100%",
@@ -135,13 +231,13 @@ const Sidebar = ({
   const buttonStyle = {
     width: "100%",
     padding: "12px",
-    backgroundColor: "#6f42c1",
+    backgroundColor: loading ? "#ccc" : "#6f42c1",
     color: "white",
     border: "none",
     borderRadius: "4px",
     fontSize: "16px",
     fontWeight: "600",
-    cursor: "pointer",
+    cursor: loading ? "not-allowed" : "pointer",
     marginTop: "20px",
   };
 
@@ -157,18 +253,6 @@ const Sidebar = ({
       }}
     >
       <div style={{ marginBottom: "16px" }}>
-        <label style={labelStyle}>Tipo de Relatório</label>
-        <select
-          style={selectStyle}
-          value={reportType}
-          onChange={(e) => setReportType(e.target.value)}
-        >
-          <option value="Manual">Manual</option>
-          <option value="Automático">Automático</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: "16px" }}>
         <label style={labelStyle}>Relatório</label>
         <select
           style={selectStyle}
@@ -180,7 +264,7 @@ const Sidebar = ({
         </select>
       </div>
 
-      <div style={{ marginBottom: "16px" }}>
+      {/* <div style={{ marginBottom: "16px" }}>
         <label style={labelStyle}>Conta</label>
         <select
           style={selectStyle}
@@ -190,71 +274,58 @@ const Sidebar = ({
           <option value="Todas as contas">Todas as contas</option>
           <option value="Conta Corrente">Conta Corrente</option>
           <option value="Poupança">Poupança</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
         </select>
-      </div>
+      </div> */}
+
+      {/* <div style={{ marginBottom: "16px" }}>
+          <label style={labelStyle}>Análise por</label>
+          <select
+            style={selectStyle}
+            value={analysisBy}
+            onChange={(e) => setAnalysisBy(e.target.value)}
+          >
+            <option value="Data da transação">Data da transação</option>
+            <option value="Data de vencimento">Data de vencimento</option>
+          </select>
+        </div> */}
+
+      {/* <div style={{ marginBottom: "16px" }}>
+          <label style={labelStyle}>Situação</label>
+          <select
+            style={selectStyle}
+            value={situation}
+            onChange={(e) => setSituation(e.target.value)}
+          >
+            <option value="Todas">Todas</option>
+            <option value="pago">Pagas</option>
+            <option value="pendente">Pendentes</option>
+            <option value="vencida">Vencidas</option>
+          </select>
+        </div> */}
 
       <div style={{ marginBottom: "16px" }}>
-        <label style={labelStyle}>Análise por</label>
-        <select
-          style={selectStyle}
-          value={analysisBy}
-          onChange={(e) => setAnalysisBy(e.target.value)}
-        >
-          <option value="Data do movimento">Data do movimento</option>
-          <option value="Data de vencimento">Data de vencimento</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: "16px" }}>
-        <label style={labelStyle}>Situação</label>
-        <select
-          style={selectStyle}
-          value={situation}
-          onChange={(e) => setSituation(e.target.value)}
-        >
-          <option value="Todas">Todas</option>
-          <option value="Em aberto">Em aberto</option>
-          <option value="Realizadas">Realizadas</option>
-        </select>
-      </div>
-
-      <div style={{ marginBottom: "16px" }}>
-        <label style={labelStyle}>Período inicial</label>
-        <input
-          type="text"
-          style={{ ...inputStyle, ...getInputStyle(startDate) }}
+        <Label>Período Inicial</Label>
+        <Input
           value={startDate}
-          onChange={handleStartDateChange}
-          placeholder="dd/mm/aaaa"
-          maxLength="10"
+          onChange={(e) => setStartDate(e.target.value)}
+          placeholder="data inicial"
         />
-        {startDate && !isValidDateFormat(startDate) && (
-          <div style={{ color: "#ff4444", fontSize: "12px" }}>
-            Formato inválido
-          </div>
-        )}
       </div>
 
       <div style={{ marginBottom: "16px" }}>
-        <label style={labelStyle}>Período final</label>
-        <input
-          type="text"
-          style={{ ...inputStyle, ...getInputStyle(endDate) }}
+        <Label>Período Final</Label>
+        <Input
           value={endDate}
-          onChange={handleEndDateChange}
-          placeholder="dd/mm/aaaa"
-          maxLength="10"
+          onChange={(e) => setEndDate(e.target.value)}
+          placeholder="data final"
         />
-        {endDate && !isValidDateFormat(endDate) && (
-          <div style={{ color: "#ff4444", fontSize: "12px" }}>
-            Formato inválido
-          </div>
-        )}
-        {startDate && endDate && !validateDateRange() && (
+
+        {/* {startDate && endDate && !validateDateRange() && (
           <div style={{ color: "#ff4444", fontSize: "12px" }}>
             Data final deve ser maior que a inicial
           </div>
-        )}
+        )} */}
       </div>
 
       <div
@@ -271,78 +342,158 @@ const Sidebar = ({
         </label>
       </div>
 
-      <button style={buttonStyle} onClick={handleGenerateReport}>
-        Ver relatório
+      <button
+        style={buttonStyle}
+        onClick={handleGenerateReport}
+        disabled={loading}
+      >
+        {loading ? "Gerando..." : "Ver relatório"}
       </button>
     </div>
   );
 };
 
-const ReportTable = ({ reportData, reportType }) => {
+const ReportTable = ({ reportType, startDate, endDate }) => {
+  const [reportData, setReportData] = useState({
+    transactions: [],
+    period: "",
+    situation: "",
+  });
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const transactions = await ApiService.getTransactions();
+        console.log("startDate:", startDate, "endDate:", endDate);
+        // Montar texto do período
+        let periodText = "";
+        if (startDate && endDate) {
+          periodText = `${startDate} - ${endDate}`;
+        } else if (startDate) {
+          periodText = `A partir de ${startDate}`;
+        } else if (endDate) {
+          periodText = `Até ${endDate}`;
+        } else {
+          periodText = "Todos os períodos";
+        }
+
+        setReportData({
+          transactions,
+          period: periodText,
+        });
+      } catch (error) {
+        console.error("Erro ao buscar transações:", error);
+      }
+    };
+
+    fetchTransactions();
+  }, [startDate, endDate]);
+
   const formatCurrency = (value) => {
-    return value > 0 ? value.toFixed(2).replace(".", ",") : "";
+    return value > 0 ? `R$ ${value.toFixed(2).replace(".", ",")}` : "";
   };
 
   const generateColumns = () => {
-    const startDate = new Date(reportData.startDate);
-    const endDate = new Date(reportData.endDate);
-    const columns = [];
+    const monthSet = new Set();
 
-    const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    reportData.transactions?.forEach((t) => {
+      const date = new Date(t.transaction_date);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
+      monthSet.add(key);
+    });
 
-    while (current <= end) {
-      const monthNames = [
-        "Jan",
-        "Fev",
-        "Mar",
-        "Abr",
-        "Mai",
-        "Jun",
-        "Jul",
-        "Ago",
-        "Set",
-        "Out",
-        "Nov",
-        "Dez",
-      ];
+    const monthKeys = Array.from(monthSet).sort();
+    const monthNames = [
+      "Jan",
+      "Fev",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dez",
+    ];
 
-      const monthKey = `${current.getFullYear()}-${String(
-        current.getMonth() + 1
-      ).padStart(2, "0")}`;
-      const monthLabel = `${
-        monthNames[current.getMonth()]
-      }/${current.getFullYear()}`;
+    return monthKeys.map((key) => {
+      const [year, month] = key.split("-");
+      return {
+        key,
+        label: `${monthNames[Number(month) - 1]}/${year}`,
+      };
+    });
+  };
 
-      columns.push({
-        key: monthKey,
-        label: monthLabel,
+  const groupTransactions = () => {
+    const grouped = {};
+    const isExpense = reportType === "Planilha de despesas";
+
+    reportData.transactions
+      ?.filter((tx) => tx.expense === isExpense)
+      .forEach((tx) => {
+        const date = new Date(tx.transaction_date);
+        const key = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}`;
+        const category = tx.type || "Sem categoria";
+        const name = tx.description;
+
+        if (!grouped[category]) grouped[category] = {};
+        if (!grouped[category][name]) grouped[category][name] = {};
+
+        grouped[category][name][key] =
+          (grouped[category][name][key] || 0) + parseFloat(tx.amount);
       });
 
-      current.setMonth(current.getMonth() + 1);
-    }
-
-    return columns;
+    return Object.entries(grouped).map(([category, items]) => ({
+      category,
+      items: Object.entries(items).map(([name, monthlyData]) => ({
+        name,
+        ...monthlyData,
+      })),
+    }));
   };
 
   const calculateRowTotal = (item, columns) => {
-    return columns.reduce((total, column) => {
-      return total + (item[column.key] || 0);
-    }, 0);
+    return columns.reduce(
+      (total, column) => total + (item[column.key] || 0),
+      0
+    );
   };
 
   const calculateColumnTotal = (expenses, columnKey) => {
     return expenses.reduce((total, category) => {
       return (
         total +
-        category.items.reduce((categoryTotal, item) => {
-          return categoryTotal + (item[columnKey] || 0);
-        }, 0)
+        category.items.reduce(
+          (catTotal, item) => catTotal + (item[columnKey] || 0),
+          0
+        )
+      );
+    }, 0);
+  };
+
+  const calculateTotalGeneral = (expenses, columns) => {
+    return expenses.reduce((sum, category) => {
+      return (
+        sum +
+        category.items.reduce(
+          (itemSum, item) => itemSum + calculateRowTotal(item, columns),
+          0
+        )
       );
     }, 0);
   };
 
   const columns = generateColumns();
+  const expenses = groupTransactions();
+  const totalGeneral = calculateTotalGeneral(expenses, columns);
 
   return (
     <div
@@ -374,6 +525,7 @@ const ReportTable = ({ reportData, reportType }) => {
             borderRadius: "4px",
             cursor: "pointer",
           }}
+          onClick={() => window.print()}
         >
           Imprimir
         </button>
@@ -403,9 +555,9 @@ const ReportTable = ({ reportData, reportType }) => {
         <div>
           <strong>Período:</strong> {reportData.period}
         </div>
-        <div>
+        {/* <div>
           <strong>Situação:</strong> {reportData.situation}
-        </div>
+        </div> */}
       </div>
 
       <div style={{ overflowX: "auto" }}>
@@ -425,7 +577,9 @@ const ReportTable = ({ reportData, reportType }) => {
                   border: "1px solid #dee2e6",
                   fontWeight: "600",
                 }}
-              ></th>
+              >
+                Descrição
+              </th>
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -453,7 +607,7 @@ const ReportTable = ({ reportData, reportType }) => {
           </thead>
 
           <tbody>
-            {reportData.expenses?.map((category, categoryIndex) => (
+            {expenses.map((category, categoryIndex) => (
               <React.Fragment key={categoryIndex}>
                 <tr style={{ backgroundColor: "#e9ecef" }}>
                   <td
@@ -526,9 +680,7 @@ const ReportTable = ({ reportData, reportType }) => {
                     border: "1px solid #dee2e6",
                   }}
                 >
-                  {formatCurrency(
-                    calculateColumnTotal(reportData.expenses || [], column.key)
-                  )}
+                  {formatCurrency(calculateColumnTotal(expenses, column.key))}
                 </td>
               ))}
               <td
@@ -538,7 +690,7 @@ const ReportTable = ({ reportData, reportType }) => {
                   border: "1px solid #dee2e6",
                 }}
               >
-                <strong>{formatCurrency(reportData.totalGeneral)}</strong>
+                <strong>{formatCurrency(totalGeneral)}</strong>
               </td>
             </tr>
           </tbody>
@@ -552,156 +704,66 @@ const Relatorio = ({ user, onLogout }) => {
   const [reportType, setReportType] = useState("Manual");
   const [reportCategory, setReportCategory] = useState("Planilha de receitas");
   const [account, setAccount] = useState("Todas as contas");
-  const [analysisBy, setAnalysisBy] = useState("Data do movimento");
+  const [analysisBy, setAnalysisBy] = useState("Data da transação");
   const [situation, setSituation] = useState("Todas");
+  // const [startDate, setStartDate] = useState(null); // era ""
+  // const [endDate, setEndDate] = useState(null); // era ""
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [includeTransfers, setIncludeTransfers] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [allData] = useState([
-    {
-      id: 1,
-      tipo: "receita",
-      categoria: "Salário",
-      descricao: "salário",
-      valor: 1500.0,
-      data: new Date(2020, 9, 15),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 2,
-      tipo: "receita",
-      categoria: "Salário",
-      descricao: "salário",
-      valor: 1500.0,
-      data: new Date(2020, 10, 15),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 3,
-      tipo: "receita",
-      categoria: "Freela",
-      descricao: "Freela",
-      valor: 500.0,
-      data: new Date(2020, 11, 10),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 4,
-      tipo: "despesa",
-      categoria: "Alimentação",
-      descricao: "Supermercado",
-      valor: 300.0,
-      data: new Date(2020, 9, 20),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 5,
-      tipo: "despesa",
-      categoria: "Transporte",
-      descricao: "Combustível",
-      valor: 200.0,
-      data: new Date(2020, 10, 25),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 6,
-      tipo: "despesa",
-      categoria: "Alimentação",
-      descricao: "Restaurante",
-      valor: 150.0,
-      data: new Date(2020, 11, 5),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 7,
-      tipo: "receita",
-      categoria: "Freela",
-      descricao: "Projeto Web",
-      valor: 800.0,
-      data: new Date(2021, 0, 10),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-    {
-      id: 8,
-      tipo: "despesa",
-      categoria: "Moradia",
-      descricao: "Aluguel",
-      valor: 1200.0,
-      data: new Date(2021, 0, 5),
-      conta: "Conta Corrente",
-      situacao: "Realizadas",
-    },
-  ]);
+  // Função para converter data do formato dd/mm/yyyy para yyyy-mm-dd
+  // const formatDateForAPI = (dateString) => {
+  //   if (!dateString) return null;
+  //   const [day, month, year] = dateString.split("/");
+  //   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  // };
+  const formatDateForAPI = (dateObj) => {
+    if (!(dateObj instanceof Date) || isNaN(dateObj)) return null;
 
-  const filterData = (filterParams) => {
-    let filtered = [...allData];
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
 
-    if (filterParams.reportCategory === "Planilha de receitas") {
-      filtered = filtered.filter((item) => item.tipo === "receita");
-    } else if (filterParams.reportCategory === "Planilha de despesas") {
-      filtered = filtered.filter((item) => item.tipo === "despesa");
-    }
-
-    if (filterParams.account !== "Todas as contas") {
-      filtered = filtered.filter((item) => item.conta === filterParams.account);
-    }
-
-    if (filterParams.situation !== "Todas") {
-      filtered = filtered.filter(
-        (item) => item.situacao === filterParams.situation
-      );
-    }
-
-    if (filterParams.startDate) {
-      filtered = filtered.filter((item) => item.data >= filterParams.startDate);
-    }
-
-    if (filterParams.endDate) {
-      const endOfDay = new Date(filterParams.endDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((item) => item.data <= endOfDay);
-    }
-
-    if (!filterParams.includeTransfers) {
-      filtered = filtered.filter((item) => item.categoria !== "transferencia");
-    }
-
-    return filtered;
+    return `${year}-${month}-${day}`;
   };
 
-  const prepareReportData = (filteredData, filterParams) => {
+  // Função para processar os dados da API
+  const processApiData = (transactions, filterParams) => {
+    // Agrupar por categoria (tags) e descrição
     const grouped = {};
 
-    filteredData.forEach((item) => {
-      if (!grouped[item.categoria]) {
-        grouped[item.categoria] = {};
+    transactions.forEach((transaction) => {
+      // Usar tags como categoria, se não existir usar "Outros"
+      const category = transaction.tags || "Outros";
+      const description = transaction.description || "Sem descrição";
+      const amount = parseFloat(transaction.amount) || 0;
+      const date = new Date(transaction.transaction_date);
+
+      if (!grouped[category]) {
+        grouped[category] = {};
       }
 
-      if (!grouped[item.categoria][item.descricao]) {
-        grouped[item.categoria][item.descricao] = {};
+      if (!grouped[category][description]) {
+        grouped[category][description] = {};
       }
 
-      const monthKey = `${item.data.getFullYear()}-${String(
-        item.data.getMonth() + 1
+      const monthKey = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
       ).padStart(2, "0")}`;
 
-      if (!grouped[item.categoria][item.descricao][monthKey]) {
-        grouped[item.categoria][item.descricao][monthKey] = 0;
+      if (!grouped[category][description][monthKey]) {
+        grouped[category][description][monthKey] = 0;
       }
 
-      grouped[item.categoria][item.descricao][monthKey] += item.valor;
+      grouped[category][description][monthKey] += amount;
     });
 
+    // Converter para formato esperado pelo componente
     const expenses = Object.keys(grouped).map((categoryName) => ({
       category: categoryName,
       items: Object.keys(grouped[categoryName]).map((itemName) => {
@@ -713,6 +775,7 @@ const Relatorio = ({ user, onLogout }) => {
       }),
     }));
 
+    // Calcular total geral
     const totalGeneral = expenses.reduce((total, category) => {
       return (
         total +
@@ -730,6 +793,7 @@ const Relatorio = ({ user, onLogout }) => {
       );
     }, 0);
 
+    // Determinar período para exibição
     let periodText = "";
     if (filterParams.startDate && filterParams.endDate) {
       periodText = `${filterParams.startDate.toLocaleDateString(
@@ -742,40 +806,134 @@ const Relatorio = ({ user, onLogout }) => {
     } else if (filterParams.endDate) {
       periodText = `Até ${filterParams.endDate.toLocaleDateString("pt-BR")}`;
     } else {
-      periodText = "Todos os períodos";
+      // periodText = "Todos os períodos";
     }
+
+    // Determinar intervalo de datas para colunas
+    const dates = transactions.map((t) => new Date(t.transaction_date));
+    const minDate =
+      filterParams.startDate ||
+      (dates.length ? new Date(Math.min(...dates)) : new Date());
+    const maxDate =
+      filterParams.endDate ||
+      (dates.length ? new Date(Math.max(...dates)) : new Date());
 
     return {
       expenses,
       totalGeneral,
-      startDate:
-        filterParams.startDate ||
-        new Date(Math.min(...filteredData.map((item) => item.data))),
-      endDate:
-        filterParams.endDate ||
-        new Date(Math.max(...filteredData.map((item) => item.data))),
+      startDate: minDate,
+      endDate: maxDate,
       period: periodText,
-      situation: filterParams.situation || "Todas",
+      // situation: filterParams.situation || "Todas",
     };
   };
 
-  const handleGenerateReport = (filterParams) => {
-    const filtered = filterData(filterParams);
+  const isValidDate = (date) => date instanceof Date && !isNaN(date.getTime());
+  const handleGenerateReport = async (filterParams) => {
+    setLoading(true);
+    setError(null);
 
-    if (filtered.length === 0) {
+    try {
+      // Preparar filtros para a API
+      const apiFilters = {
+        user_id: user?.id, // Assumindo que o user tem ID
+      };
+
+      // Filtro por tipo (receita/despesa)
+      if (filterParams.reportCategory === "Planilha de despesas") {
+        apiFilters.expense = true;
+      } else if (filterParams.reportCategory === "Planilha de receitas") {
+        apiFilters.expense = false;
+      }
+
+      // Filtro por situação/status
+      if (filterParams.situation !== "Todas") {
+        apiFilters.status = filterParams.situation;
+      }
+
+      // Filtros de data
+      // if (filterParams.startDate) {
+      //   apiFilters.start_date = formatDateForAPI(
+      //     filterParams.startDate.toLocaleDateString("pt-BR")
+      //   );
+      // }
+
+      // if (filterParams.endDate) {
+      //   apiFilters.end_date = formatDateForAPI(
+      //     filterParams.endDate.toLocaleDateString("pt-BR")
+      //   );
+      // }
+      // if (filterParams.startDate) {
+      //   apiFilters.start_date = formatDateForAPI(filterParams.startDate);
+      // }
+
+      // if (filterParams.endDate) {
+      //   apiFilters.end_date = formatDateForAPI(filterParams.endDate);
+      // }
+
+      if (!isValidDate(filterParams.startDate)) {
+        setError("Data inicial inválida");
+        return;
+      }
+
+      if (!isValidDate(filterParams.endDate)) {
+        setError("Data final inválida");
+        return;
+      }
+
+      // if (filterParams.startDate) {
+      //   apiFilters.start_date = formatDateForAPI(filterParams.startDate);
+      // }
+      // if (filterParams.endDate) {
+      //   apiFilters.end_date = formatDateForAPI(filterParams.endDate);
+      // }
+
+      if (filterParams.startDate) {
+        apiFilters.created_at = `gte.${formatDateForAPI(
+          filterParams.startDate.toLocaleDateString("pt-BR")
+        )}`;
+      }
+
+      if (filterParams.endDate) {
+        apiFilters.created_at = apiFilters.created_at
+          ? apiFilters.created_at +
+            `&created_at=lte.${formatDateForAPI(
+              filterParams.endDate.toLocaleDateString("pt-BR")
+            )}`
+          : `lte.${formatDateForAPI(
+              filterParams.endDate.toLocaleDateString("pt-BR")
+            )}`;
+      }
+
+      // Buscar dados da API
+      const transactions = await ApiService.getTransactions(apiFilters);
+
+      if (!transactions || transactions.length === 0) {
+        setShowReport(false);
+        setReportData(null);
+        setError("Nenhuma transação encontrada para os filtros selecionados.");
+        return;
+      }
+
+      // Processar dados
+      const processedData = processApiData(transactions, filterParams);
+
+      setReportData(processedData);
+      setShowReport(true);
+      setError(null);
+    } catch (err) {
+      console.error("Erro ao gerar relatório:", err);
+      setError("Erro ao buscar dados. Tente novamente.");
       setShowReport(false);
       setReportData(null);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const preparedData = prepareReportData(filtered, filterParams);
-    setReportData(preparedData);
-    setShowReport(true);
   };
 
   return (
     <div style={{ height: "100vh", backgroundColor: "#f8f9fa" }}>
-       <GlobalStyle />
+      <GlobalStyle />
       <Header user={user} onLogout={onLogout} />
       <div
         style={{
@@ -802,11 +960,42 @@ const Relatorio = ({ user, onLogout }) => {
           includeTransfers={includeTransfers}
           setIncludeTransfers={setIncludeTransfers}
           onGenerateReport={handleGenerateReport}
+          loading={loading}
         />
 
-        {showReport && reportData ? (
+        {error && (
+          <div
+            style={{
+              flex: 1,
+              padding: "20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              backgroundColor: "white",
+            }}
+          >
+            <div
+              style={{
+                padding: "20px",
+                backgroundColor: "#fff5f5",
+                border: "1px solid #fed7d7",
+                borderRadius: "8px",
+                color: "#c53030",
+                textAlign: "center",
+              }}
+            >
+              <h3 style={{ margin: "0 0 10px 0" }}>
+                Erro ao carregar relatório
+              </h3>
+              <p style={{ margin: 0 }}>{error}</p>
+            </div>
+          </div>
+        )}
+
+        {showReport && reportData && !error ? (
           <ReportTable reportData={reportData} reportType={reportCategory} />
-        ) : (
+        ) : !error ? (
           <div
             style={{
               flex: 1,
@@ -830,7 +1019,7 @@ const Relatorio = ({ user, onLogout }) => {
               }}
             >
               Selecione os filtros no painel lateral e clique em "Ver relatório"
-              para gerar o relatório.
+              para gerar o relatório com dados reais do banco.
             </p>
 
             <div
@@ -866,11 +1055,13 @@ const Relatorio = ({ user, onLogout }) => {
                   color: "#6c757d",
                 }}
               >
-                Aguardando configuração do relatório
+                {loading
+                  ? "Carregando dados..."
+                  : "Aguardando configuração do relatório"}
               </p>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

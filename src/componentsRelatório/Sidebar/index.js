@@ -122,15 +122,15 @@ const Sidebar = ({
   };
 
   // Estilo para campos com erro
-  const getInputStyle = (dateValue) => {
-    if (!dateValue) return {};
+  // const getInputStyle = (dateValue) => {
+  //   if (!dateValue) return {};
 
-    const isValid = isValidDateFormat(dateValue) && parseDate(dateValue);
-    return {
-      borderColor: isValid ? "#ccc" : "#ff4444",
-      backgroundColor: isValid ? "white" : "#fff5f5",
-    };
-  };
+  //   const isValid = isValidDateFormat(dateValue) && parseDate(dateValue);
+  //   return {
+  //     borderColor: isValid ? "#ccc" : "#ff4444",
+  //     backgroundColor: isValid ? "white" : "#fff5f5",
+  //   };
+  // };
 
   return (
     <C.Container>
@@ -169,7 +169,7 @@ const Sidebar = ({
           </C.Select>
         </C.InputContent>
 
-        <C.InputContent>
+        {/* <C.InputContent>
           <C.Label>Análise por</C.Label>
           <C.Select
             value={analysisBy}
@@ -178,9 +178,9 @@ const Sidebar = ({
             <option value="Data do movimento">Data do movimento</option>
             <option value="Data de vencimento">Data de vencimento</option>
           </C.Select>
-        </C.InputContent>
+        </C.InputContent> */}
 
-        <C.InputContent>
+        {/* <C.InputContent>
           <C.Label>Situação</C.Label>
           <C.Select
             value={situation}
@@ -190,7 +190,7 @@ const Sidebar = ({
             <option value="Em aberto">Em aberto</option>
             <option value="Realizadas">Realizadas</option>
           </C.Select>
-        </C.InputContent>
+        </C.InputContent> */}
 
         <C.InputContent>
           <C.Label>Período inicial</C.Label>
@@ -200,7 +200,7 @@ const Sidebar = ({
             onChange={handleStartDateChange}
             placeholder="dd/mm/aaaa"
             maxLength="10"
-            style={getInputStyle(startDate)}
+            // style={getInputStyle(startDate)}
           />
           {startDate && !isValidDateFormat(startDate) && (
             <C.ErrorText>Formato inválido</C.ErrorText>
@@ -215,7 +215,7 @@ const Sidebar = ({
             onChange={handleEndDateChange}
             placeholder="dd/mm/aaaa"
             maxLength="10"
-            style={getInputStyle(endDate)}
+            // style={getInputStyle(endDate)}
           />
           {endDate && !isValidDateFormat(endDate) && (
             <C.ErrorText>Formato inválido</C.ErrorText>
