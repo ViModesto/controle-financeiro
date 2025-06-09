@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StyledWrapper } from "./styles";
 import GlobalStyle from "../../styles/global";
 import { supabase } from "../../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -126,18 +127,20 @@ const Register = () => {
     }
   };
 
-  // Função para testar conexão
-  const testConnection = async () => {
-    try {
-      const { data, error } = await supabase.from("users").select("*").limit(1);
+  // // Função para testar conexão
+  // const testConnection = async () => {
+  //   try {
+  //     const { data, error } = await supabase.from("users").select("*").limit(1);
 
-      console.log("Teste de conexão:", { data, error });
-      alert(`Conexão: ${error ? "FALHOU - " + error.message : "OK"}`);
-    } catch (err) {
-      console.error("Erro no teste:", err);
-      alert(`Erro no teste: ${err.message}`);
-    }
-  };
+  //     console.log("Teste de conexão:", { data, error });
+  //     alert(`Conexão: ${error ? "FALHOU - " + error.message : "OK"}`);
+  //   } catch (err) {
+  //     console.error("Erro no teste:", err);
+  //     alert(`Erro no teste: ${err.message}`);
+  //   }
+  // };
+
+  const navigate = useNavigate();
 
   return (
     <StyledWrapper>
@@ -145,7 +148,7 @@ const Register = () => {
       <form className="form_main" onSubmit={handleSubmit}>
         <p className="heading">Cadastre-se</p>
 
-        {/* Botão de teste - remover em produção */}
+        {/* Botão de teste - remover em produção
         <button
           type="button"
           onClick={testConnection}
@@ -160,7 +163,7 @@ const Register = () => {
           }}
         >
           Testar Conexão
-        </button>
+        </button> */}
 
         <div className="inputContainer">
           <input
@@ -220,6 +223,38 @@ const Register = () => {
         <button id="button" type="submit" disabled={loading}>
           {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
+
+        {/* <div className="signupContainer"> */}
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            style={{
+              marginTop: "10px",
+              padding: "0px 15px",
+              fontSize: "14px",
+              fontWeight: "500",
+              backgroundColor: "#8b5cf6", // ou "#9333ea" - cor roxa/violeta
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "25px",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              textDecoration: "none",
+              display: "inline-block",
+              textAlign: "center",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = "#7c3aed"; // tom mais escuro no hover
+              e.target.style.transform = "translateY(5px)";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = "#8b5cf6";
+              e.target.style.transform = "translateY(0)";
+            }}
+          >
+            Voltar para o Login
+          </button>
+        {/* </div> */}
       </form>
     </StyledWrapper>
   );
